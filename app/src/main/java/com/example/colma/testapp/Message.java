@@ -2,25 +2,29 @@ package com.example.colma.testapp;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
-public class Message implements Parcelable {
+public class Message implements Parcelable, Comparable<Message> {
     String id;
-    String messageText;
+    private String messageText;
     Loc location;
-
+    private int upVotes;
+    private int downVotes;
 
     public Message()
     {
 
     }
 
-    public Message(String id, String messageText, Loc loc) {
+    public Message(String id, String messageText, Loc loc, int up, int down) {
         this.id = id;
         this.messageText = messageText;
         this.location = loc;
+        this.upVotes = up;
+        this.downVotes = down;
     }
 
-    public Message(Parcel source) {
+    private Message(Parcel source) {
         id = source.readString();
         messageText = source.readString();
         location = source.readParcelable(getClass().getClassLoader());
@@ -38,7 +42,16 @@ public class Message implements Parcelable {
         return location;
     }
 
+    public int getUpVotes() {
+        return upVotes;
+    }
+
+    public int getDownVotes() {
+        return downVotes;
+    }
+
     @Override
+
     public int describeContents() {
         return 0;
     }
@@ -61,4 +74,12 @@ public class Message implements Parcelable {
             return new Message(source);
         }
     };
+
+    @Override
+    public int compareTo(Message compareMessage) {
+        int compareVote = compareMessage.getUpVotes() - compareMessage.getDownVotes();
+        int thisVote = this.getUpVotes() - this.getDownVotes();
+
+        return compareVote - thisVote;
+    }
 }

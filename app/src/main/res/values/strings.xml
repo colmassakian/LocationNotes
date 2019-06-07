@@ -1,7 +1,11 @@
 <resources>
-    <string name="app_name">Test App</string>
+    <string name="app_name">Location Notes</string>
     <string name="edit_message">Enter a message</string>
     <string name="button_send">Send</string>
     <string name="button_delete">Clear</string>
     <string name="MakeNote">Make Note</string>
+    <string name="set_radius">Set Radius</string>
+    <string name="set_vote_threshold">Set Vote Threshold</string>
+    <string name="thumbs_up">Thumbs Up</string>
+    <string name="thumbs_down">Thumbs Down</string>
 </resources>

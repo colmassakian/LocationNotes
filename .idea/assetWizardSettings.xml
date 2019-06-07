@@ -3,6 +3,11 @@
   <component name="WizardSettings">
     <option name="children">
       <map>
+        <entry key="imageWizard">
+          <value>
+            <PersistentState />
+          </value>
+        </entry>
         <entry key="vectorWizard">
           <value>
             <PersistentState>
@@ -14,8 +19,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="ic_settings" />
-                            <entry key="sourceFile" value="C:\Users\colma\Downloads\baseline-settings-20px.svg" />
+                            <entry key="outputName" value="ic_red_thumb_down" />
+                            <entry key="sourceFile" value="C:\Users\colma\Downloads\red-thumb_down.svg" />
                           </map>
                         </option>
                       </PersistentState>

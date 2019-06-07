@@ -1,6 +1,7 @@
 package com.example.colma.testapp;
 
 import android.content.Intent;
+import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,17 +17,20 @@ public class MakeNoteActivity extends AppCompatActivity {
 
     private static final String TAG = "MakeNoteActivity";
     EditText editTextMessage;
-    Loc location;
+    Loc loc;
+    Location location;
     String city;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_note);
-        editTextMessage = (EditText) findViewById(R.id.editTextMessage);
+        editTextMessage = findViewById(R.id.editTextMessage);
 
         Intent intent = getIntent();
-        location = (Loc) intent.getParcelableExtra(MainActivity.LOCATION);
+        location = intent.getParcelableExtra(MainActivity.LOCATION);
+        if(location != null)
+            loc = new Loc(location.getLatitude(), location.getLongitude());
         city = intent.getStringExtra(MainActivity.CITY);
 
     }
@@ -36,19 +40,20 @@ public class MakeNoteActivity extends AppCompatActivity {
         DatabaseReference databaseMessages = FirebaseDatabase.getInstance().getReference("notes/" + city);
         String message = editTextMessage.getText().toString().trim();
 //        String message = "Testing";
-        if (!TextUtils.isEmpty(message)) {
+        if (!TextUtils.isEmpty(message) && location != null) {
             String id = databaseMessages.push().getKey();
 
 
-            Message userMessage = new Message(id, message, location);
+            Message userMessage = new Message(id, message, loc, 0, 0);
             databaseMessages.child(id).setValue(userMessage);
 
             Toast.makeText(this, "Message Added", Toast.LENGTH_LONG).show();
-        } else {
+        } else if(TextUtils.isEmpty(message)){
             Toast.makeText(this, "Please enter a message", Toast.LENGTH_LONG).show();
+        } else if (location == null){
+            Toast.makeText(this, "Cannot get current location, try again later", Toast.LENGTH_LONG).show();
         }
 
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        finish();
     }
 }
