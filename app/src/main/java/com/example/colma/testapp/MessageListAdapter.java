@@ -27,7 +27,6 @@ public class MessageListAdapter extends BaseAdapter implements ListAdapter {
     private Context applicationContext;
     private String reference;
     private DatabaseReference messagesDB;
-    private int currUpVotes, currDownVotes;
     private Map<String, List<Integer>> voteMap;
     TextView voteText;
     private MessageListAdapter mla;
@@ -97,8 +96,8 @@ public class MessageListAdapter extends BaseAdapter implements ListAdapter {
 
 
         List<Integer> votes = voteMap.get(list.get(position).getId());
-        currUpVotes = votes.get(0);
-        currDownVotes = votes.get(1);
+        int currUpVotes = votes.get(0);
+        int currDownVotes = votes.get(1);
 
         voteText = view.findViewById(R.id.voteText);
         voteText.setText(Integer.toString(currUpVotes - currDownVotes));

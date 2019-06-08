@@ -66,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     MyReceiver myReceiver;
     public BackgroundService gpsService;
 
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,13 +82,13 @@ public class MainActivity extends AppCompatActivity {
         // Database and location
         listViewMessages = findViewById(R.id.listViewMessages);
 
-        Location loc = getCurrLoc();
-        if(loc != null)
-        {
-            location = new Loc(loc.getLatitude(), loc.getLongitude());
-            city = getCity(location);
-            Log.i(TAG, "onCreate: City" + city);
-        }
+//        Location loc = getCurrLoc();
+//        if(loc != null)
+//        {
+//            location = new Loc(loc.getLatitude(), loc.getLongitude());
+//            city = getCity(location);
+//            Log.i(TAG, "onCreate: City" + city);
+//        }
 
         final Intent intent = new Intent(this.getApplication(), BackgroundService.class);
         myReceiver = new MyReceiver(new Handler());
@@ -115,20 +118,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        SharedPreferences pref = getApplicationContext().getSharedPreferences("UserPrefs", 0);
-        SharedPreferences.Editor editor = pref.edit();
+        pref = getApplicationContext().getSharedPreferences("UserPrefs", 0);
+        editor = pref.edit();
+
+        String radiusString = pref.getString("Radius", "50");
+        String thresholdString = pref.getString("Threshold", "-50");
+
         switch (item.getItemId()) {
             case R.id.action_radius:
                 AlertDialog.Builder builderRadius = new AlertDialog.Builder(this);
 
                 final EditText settingRadius = new EditText(this);
 
-                builderRadius.setTitle("Enter the new radius").setView(settingRadius).setView(settingRadius);
+                builderRadius.setTitle("Enter the new radius (Default is 50, Current is " + radiusString + ")").setView(settingRadius).setView(settingRadius);
 
                 builderRadius.setPositiveButton("OK",new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         userRadius = settingRadius.getText().toString();
+                        editor.putString("Radius", userRadius);
+                        editor.commit();
+                        gpsService.updateDatabase(backgroundLocation);
                     }
                 });
                 builderRadius.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
@@ -138,8 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                editor.putString("Radius", userRadius);
-                editor.commit();
+
 
                 builderRadius.show();
                 return true;
@@ -148,12 +157,15 @@ public class MainActivity extends AppCompatActivity {
 
                 final EditText settingThreshold = new EditText(this);
 
-                builderThreshold.setTitle("Enter the new vote threshold").setView(settingThreshold).setView(settingThreshold);
+                builderThreshold.setTitle("Enter the new vote threshold (Default is -50, Current is " + thresholdString + ")").setView(settingThreshold).setView(settingThreshold);
 
                 builderThreshold.setPositiveButton("OK",new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         userThreshold = settingThreshold.getText().toString();
+                        editor.putString("Threshold", userThreshold);
+                        editor.commit();
+                        gpsService.updateDatabase(backgroundLocation);
                     }
                 });
                 builderThreshold.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
@@ -163,8 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                editor.putString("Threshold", userThreshold);
-                editor.commit();
+
 
                 builderThreshold.show();
                 return true;
@@ -192,7 +203,9 @@ public class MainActivity extends AppCompatActivity {
                 distMessageList = bundle.getParcelableArrayList("messagelist");
                 voteMap = (HashMap<String, List<Integer>>) bundle.getSerializable("votelist");
                 backgroundLocation = bundle.getParcelable("location");
-                city = getCity(new Loc(backgroundLocation.getLatitude(), backgroundLocation.getLongitude()));
+                if (backgroundLocation != null) {
+                    city = getCity(new Loc(backgroundLocation.getLatitude(), backgroundLocation.getLongitude()));
+                }
                 Log.i(TAG, "onReceive: " + backgroundLocation.getLatitude() + ", " + backgroundLocation.getLongitude());
                 // Use handler to do UI
                 handler.post(new Runnable() {
@@ -244,7 +257,10 @@ public class MainActivity extends AppCompatActivity {
     private Location getCurrLoc()
     {
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        List<String> providers = lm.getProviders(true);
+        List<String> providers = null;
+        if (lm != null) {
+            providers = lm.getProviders(true);
+        }
 
         /* Loop over the array backwards, and if you get an accurate location, then break out the loop*/
         Location l = null;
@@ -252,7 +268,9 @@ public class MainActivity extends AppCompatActivity {
         {
             for (int i = providers.size() - 1; i >= 0; i --)
             {
-                l = lm.getLastKnownLocation(providers.get(i));
+                if (lm != null) {
+                    l = lm.getLastKnownLocation(providers.get(i));
+                }
                 if (l != null)
                 {
                     break;

@@ -127,7 +127,7 @@ public class BackgroundService extends Service {
                 SharedPreferences.Editor editor = pref.edit();
 
 
-                String prefString = pref.getString("Notification", "There are no messages near you currently");
+                String prefString = pref.getString("Notification", "nullValMessage");
 
                 if(distMessageList.size() == 0)
                     topMessage = "There are no messages near you currently";
@@ -164,25 +164,25 @@ public class BackgroundService extends Service {
         float distanceInMeters;
 
         SharedPreferences pref = getApplicationContext().getSharedPreferences("UserPrefs", 0);
-        SharedPreferences.Editor editor = pref.edit();
 
         String radiusString = pref.getString("Radius", "50");
         String thresholdString = pref.getString("Threshold", "-50");
         int radius = Integer.parseInt(radiusString);
         int voteThreshold = Integer.parseInt(thresholdString);
+//        Log.i(TAG, "getNotesInRadius: Radius: " + radius + " Threshold: " + voteThreshold);
 
         Location noteLocation = new Location("");//provider name is unnecessary
         ArrayList<Message> notesInRadius = new ArrayList<>();
 
         for (int i = 0; i < tempMessageList.size(); i++) {
             currMessage = tempMessageList.get(i);
-            Log.i(TAG, "getNotesInRadius: " + currLocation.getLatitude() + ", " + currLocation.getLongitude());
+//            Log.i(TAG, "getNotesInRadius: " + currLocation.getLatitude() + ", " + currLocation.getLongitude());
             noteLocation.setLatitude(currMessage.location.getLatitude());
             noteLocation.setLongitude(currMessage.location.getLongitude());
 
             distanceInMeters = noteLocation.distanceTo(currLocation);
 
-            if (distanceInMeters < radius && (currMessage.getUpVotes() - currMessage.getDownVotes()) > voteThreshold)
+            if (distanceInMeters < radius && (currMessage.getUpVotes() - currMessage.getDownVotes()) >= voteThreshold)
                 notesInRadius.add(currMessage);
         }
 
@@ -219,7 +219,7 @@ public class BackgroundService extends Service {
         }
 
         builder = builder
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_baseline_create_24px)
                 .setContentTitle("Location Notes")
                 .setContentText(note)
                 .setDefaults(Notification.DEFAULT_ALL)

@@ -13,6 +13,8 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static com.example.colma.testapp.MainActivity.LOCATION;
+
 public class MakeNoteActivity extends AppCompatActivity {
 
     private static final String TAG = "MakeNoteActivity";
@@ -28,7 +30,7 @@ public class MakeNoteActivity extends AppCompatActivity {
         editTextMessage = findViewById(R.id.editTextMessage);
 
         Intent intent = getIntent();
-        location = intent.getParcelableExtra(MainActivity.LOCATION);
+        location = intent.getParcelableExtra(LOCATION);
         if(location != null)
             loc = new Loc(location.getLatitude(), location.getLongitude());
         city = intent.getStringExtra(MainActivity.CITY);
