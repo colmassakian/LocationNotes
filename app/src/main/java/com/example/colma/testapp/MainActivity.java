@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     public final static String LOCATION = "com.example.colma.testapp.LOCATION";
     public final static String CITY = "com.example.colma.testapp.CITY";
+    public static final String STOPFOREGROUND_ACTION = "STOPFOREGROUND_ACTION";
+    private static final String STARTFOREGROUND_ACTION = "STARTFOREGROUND_ACTION";
     String userRadius, userThreshold;
     ProgressDialog dialog;
 
@@ -82,21 +84,14 @@ public class MainActivity extends AppCompatActivity {
         // Database and location
         listViewMessages = findViewById(R.id.listViewMessages);
 
-//        Location loc = getCurrLoc();
-//        if(loc != null)
-//        {
-//            location = new Loc(loc.getLatitude(), loc.getLongitude());
-//            city = getCity(location);
-//            Log.i(TAG, "onCreate: City" + city);
-//        }
-
         final Intent intent = new Intent(this.getApplication(), BackgroundService.class);
         myReceiver = new MyReceiver(new Handler());
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BackgroundService.MY_ACTION);
+//        intent.setAction(STARTFOREGROUND_ACTION);
         registerReceiver(myReceiver, intentFilter);
-        Log.i(TAG, "onCreate: reached");
 
+        // Start service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             this.getApplication().startForegroundService(intent);
             this.getApplication().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -105,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
             this.getApplication().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
         }
 
+        // Wait to get background location
         dialog = new ProgressDialog(this);
         dialog.setMessage("Waiting for location");
         dialog.show();
@@ -124,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         String radiusString = pref.getString("Radius", "50");
         String thresholdString = pref.getString("Threshold", "-50");
 
+        // Let user choose new vote threshold and radius
         switch (item.getItemId()) {
             case R.id.action_radius:
                 AlertDialog.Builder builderRadius = new AlertDialog.Builder(this);
@@ -198,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = arg1.getExtras();
             if(bundle != null)
             {
-                dialog.dismiss();
+                dialog.dismiss(); // Done waiting for location
 
                 distMessageList = bundle.getParcelableArrayList("messagelist");
                 voteMap = (HashMap<String, List<Integer>>) bundle.getSerializable("votelist");
@@ -206,8 +203,8 @@ public class MainActivity extends AppCompatActivity {
                 if (backgroundLocation != null) {
                     city = getCity(new Loc(backgroundLocation.getLatitude(), backgroundLocation.getLongitude()));
                 }
-                Log.i(TAG, "onReceive: " + backgroundLocation.getLatitude() + ", " + backgroundLocation.getLongitude());
-                // Use handler to do UI
+//                Log.i(TAG, "onReceive: " + backgroundLocation.getLatitude() + ", " + backgroundLocation.getLongitude());
+                // Use handler to do UI, update list of messages
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -221,15 +218,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Start activity to make a new note
     public void makeNote(View view)
     {
         Intent intent = new Intent(this, MakeNoteActivity.class);
         intent.putExtra(LOCATION, backgroundLocation);
         intent.putExtra(CITY, city);
-//        Log.i(TAG, "makeNote: " + city);
         startActivity(intent);
     }
 
+    // Get permission to use location data and start tracking location
     private void getPermission()
     {
         Dexter.withActivity(this)
@@ -277,9 +275,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         } catch (java.lang.SecurityException ex) {
-            // Log.i(TAG, "fail to request location update, ignore", ex);
         }
-//        Log.i(TAG, "Location: "+l);
 
 
         return l;
@@ -321,6 +317,9 @@ public class MainActivity extends AppCompatActivity {
         // TODO Auto-generated method stub
         unregisterReceiver(myReceiver);
         gpsService.stopTracking();
+//        Intent stopIntent = new Intent(MainActivity.this, BackgroundService.class);
+//        stopIntent.setAction(STOPFOREGROUND_ACTION);
+//        startService(stopIntent);
         super.onDestroy();
     }
     

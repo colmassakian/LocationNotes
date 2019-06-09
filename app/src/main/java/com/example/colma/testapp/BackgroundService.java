@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -67,7 +68,7 @@ public class BackgroundService extends Service {
         public void onLocationChanged(Location location) {
             Log.i(TAG, "onLocationChanged: " + location.getLatitude() + ", " + location.getLongitude());
             mLastLocation = location;
-
+            // Update list when location changes
             updateDatabase(location);
         }
 
@@ -95,8 +96,8 @@ public class BackgroundService extends Service {
         databaseMessages.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
                 messageList.clear();
+                // Store curr city in pref, check if user is still in the same city
                 for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
                     Message message = messageSnapshot.getValue(Message.class);
 
@@ -110,6 +111,7 @@ public class BackgroundService extends Service {
                     getVotes();
                 }
 
+                // Send lists to MainActivity
                 Intent intent = new Intent();
                 intent.setAction(MY_ACTION);
 
@@ -119,9 +121,9 @@ public class BackgroundService extends Service {
                 databaseInfo.putParcelable("location", location);
                 intent.putExtras(databaseInfo);
 
-                Log.i(TAG, "onDataChange: SENDING BROADCAST");
                 sendBroadcast(intent);
 
+                // Send notification if top message changes
                 String topMessage;
                 SharedPreferences pref = getApplicationContext().getSharedPreferences("NotificationMessage", 0);
                 SharedPreferences.Editor editor = pref.edit();
@@ -150,6 +152,7 @@ public class BackgroundService extends Service {
         });
     }
 
+    // Get vote information from list of nearby messages
     private void getVotes() {
         for (int i = 0; i < distMessageList.size(); i++) {
             List<Integer> votesList = new ArrayList<>();
@@ -169,14 +172,13 @@ public class BackgroundService extends Service {
         String thresholdString = pref.getString("Threshold", "-50");
         int radius = Integer.parseInt(radiusString);
         int voteThreshold = Integer.parseInt(thresholdString);
-//        Log.i(TAG, "getNotesInRadius: Radius: " + radius + " Threshold: " + voteThreshold);
 
         Location noteLocation = new Location("");//provider name is unnecessary
         ArrayList<Message> notesInRadius = new ArrayList<>();
 
+        // add message object to list if it is closer than radius and above vote threshold
         for (int i = 0; i < tempMessageList.size(); i++) {
             currMessage = tempMessageList.get(i);
-//            Log.i(TAG, "getNotesInRadius: " + currLocation.getLatitude() + ", " + currLocation.getLongitude());
             noteLocation.setLatitude(currMessage.location.getLatitude());
             noteLocation.setLongitude(currMessage.location.getLongitude());
 
@@ -224,12 +226,25 @@ public class BackgroundService extends Service {
                 .setContentText(note)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(true);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        builder.setContentIntent(contentIntent);
+
         notificationManager.notify(1, builder.build());
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+//        if (intent.getAction().equals( MainActivity.STOPFOREGROUND_ACTION)) {
+//            //your end servce code
+//            Log.i(TAG, "onStartCommand: ENDED SERVICE");
+//            stopForeground(true);
+//            stopSelf();
+//        }
         return START_NOT_STICKY;
     }
 
@@ -251,9 +266,7 @@ public class BackgroundService extends Service {
             }
             location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             updateDatabase(location);
-            Log.i(TAG, "onCreate: Service started loc: " + location.getLatitude() + ", " + location.getLongitude());
         }
-        Log.i(TAG, "onCreate: Service started, no loc");
     }
 
     @Override
@@ -276,12 +289,11 @@ public class BackgroundService extends Service {
     }
 
     public void startTracking(Context appContext) throws SecurityException, IllegalArgumentException {
-        Log.i(TAG, "startTracking");
         applicationContext = appContext;
         initializeLocationManager();
         mLocationListener = new LocationListener(LocationManager.GPS_PROVIDER);
 
-        int LOCATION_INTERVAL = 500;
+        int LOCATION_INTERVAL = 1000;
         int LOCATION_DISTANCE = 10;
         mLocationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener );
         mLocationManager.requestLocationUpdates( LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener );
