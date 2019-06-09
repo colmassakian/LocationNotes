@@ -122,6 +122,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Let user choose new vote threshold and radius
         switch (item.getItemId()) {
+            case R.id.action_refresh:
+                gpsService.updateDatabase(backgroundLocation);
+
+                return true;
             case R.id.action_radius:
                 AlertDialog.Builder builderRadius = new AlertDialog.Builder(this);
 
@@ -133,9 +137,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         userRadius = settingRadius.getText().toString();
-                        editor.putString("Radius", userRadius);
-                        editor.commit();
-                        gpsService.updateDatabase(backgroundLocation);
+                        if(!userRadius.isEmpty() && isNumeric(userRadius))
+                        {
+                            editor.putString("Radius", userRadius);
+                            editor.commit();
+                            gpsService.updateDatabase(backgroundLocation);
+                        }
                     }
                 });
                 builderRadius.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
@@ -144,8 +151,6 @@ public class MainActivity extends AppCompatActivity {
                         dialog.cancel();
                     }
                 });
-
-
 
                 builderRadius.show();
                 return true;
@@ -160,9 +165,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         userThreshold = settingThreshold.getText().toString();
-                        editor.putString("Threshold", userThreshold);
-                        editor.commit();
-                        gpsService.updateDatabase(backgroundLocation);
+                        if(!userThreshold.isEmpty() && isNumeric(userThreshold))
+                        {
+                            editor.putString("Threshold", userThreshold);
+                            editor.commit();
+                            gpsService.updateDatabase(backgroundLocation);
+                        }
                     }
                 });
                 builderThreshold.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
@@ -171,8 +179,6 @@ public class MainActivity extends AppCompatActivity {
                         dialog.cancel();
                     }
                 });
-
-
 
                 builderThreshold.show();
                 return true;
@@ -296,6 +302,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return cityName;
+    }
+
+    private static boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch(NumberFormatException e){
+            return false;
+        }
     }
 
     private void openSettings() {

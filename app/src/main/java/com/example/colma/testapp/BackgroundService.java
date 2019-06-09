@@ -165,13 +165,21 @@ public class BackgroundService extends Service {
     private ArrayList<Message> getNotesInRadius(List<Message> tempMessageList, Location currLocation) {
         Message currMessage;
         float distanceInMeters;
+        int radius, voteThreshold;
 
         SharedPreferences pref = getApplicationContext().getSharedPreferences("UserPrefs", 0);
 
         String radiusString = pref.getString("Radius", "50");
         String thresholdString = pref.getString("Threshold", "-50");
-        int radius = Integer.parseInt(radiusString);
-        int voteThreshold = Integer.parseInt(thresholdString);
+        if(radiusString != null && !radiusString.isEmpty())
+            radius = Integer.parseInt(radiusString);
+        else
+            radius = 50;
+
+        if(thresholdString != null && !thresholdString.isEmpty())
+            voteThreshold = Integer.parseInt(thresholdString);
+        else
+            voteThreshold = -50;
 
         Location noteLocation = new Location("");//provider name is unnecessary
         ArrayList<Message> notesInRadius = new ArrayList<>();

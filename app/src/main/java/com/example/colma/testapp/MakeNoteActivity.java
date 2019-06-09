@@ -39,10 +39,12 @@ public class MakeNoteActivity extends AppCompatActivity {
 
     public void addMessage(View view) {
         Log.i(TAG, "addMessage: " + city);
+        int maxLength = 100;
         DatabaseReference databaseMessages = FirebaseDatabase.getInstance().getReference("notes/" + city);
         String message = editTextMessage.getText().toString().trim();
-//        String message = "Testing";
-        if (!TextUtils.isEmpty(message) && location != null) {
+
+        // Make sure message has text that is less than 100 characters and has a valid location
+        if (!TextUtils.isEmpty(message) && message.length() <= maxLength && location != null) {
             String id = databaseMessages.push().getKey();
 
 
@@ -52,6 +54,8 @@ public class MakeNoteActivity extends AppCompatActivity {
             Toast.makeText(this, "Message Added", Toast.LENGTH_LONG).show();
         } else if(TextUtils.isEmpty(message)){
             Toast.makeText(this, "Please enter a message", Toast.LENGTH_LONG).show();
+        } else if(message.length() > maxLength){
+            Toast.makeText(this, "Message must be less than 150 characters", Toast.LENGTH_LONG).show();
         } else if (location == null){
             Toast.makeText(this, "Cannot get current location, try again later", Toast.LENGTH_LONG).show();
         }
